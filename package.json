@@ -16,6 +16,7 @@
     "jsonwebtoken": "^8.5.1",
     "mercadopago": "^1.5.16",
     "mysql": "^2.18.1",
+    "mysql2": "^3.4.0",
     "node-schedule": "^2.1.1",
     "nodemailer": "^6.9.3",
     "serverless-http": "^3.2.0",

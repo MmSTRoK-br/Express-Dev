@@ -3,7 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const mercadopago = require('mercadopago');
 
 const app = express();
