@@ -70,7 +70,8 @@ app.post('/login', (req, res) => {
     res.cookie('token', token, { httpOnly: true });
 
     // inclua o nome do usuário na resposta
-    res.send({ success: true, username: user.usuario, token });
+    res.send({ success: true, username: user.usuario, role: user.acesso, token });
+
 });
 
 });
