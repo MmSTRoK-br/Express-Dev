@@ -10,7 +10,7 @@ const db = mysql.createPool({
   host: '129.148.55.118',
   user: 'QualityAdmin',
   password: 'Suus0220##',
-  database: 'qualityseg_EAD',
+  database: 'Quality_EAD',
   connectionLimit: 10,
 });
 
@@ -44,7 +44,6 @@ db.getConnection((err, connection) => {
 
 app.use(cors());
 app.use(express.json());
-
 
 app.post('/login', (req, res) => {
   const { usuario, senha } = req.body;
@@ -134,7 +133,6 @@ app.use((req, res, next) => {
 
   next();
 });
-const token = jwt.sign({ id: user.id, role: user.acesso }, 'suus02201998##', { expiresIn: '1h' });
 
 
 
