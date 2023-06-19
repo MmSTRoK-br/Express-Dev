@@ -7,6 +7,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const mysql = require('mysql2');
 const mercadopago = require('mercadopago');
+const axios = require('axios');
+
 
 const app = express();
 
