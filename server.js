@@ -66,7 +66,6 @@ app.post('/login', (req, res) => {
 });
 
 
-
 app.delete('/deleteAll', (req, res) => {
   const query = 'DELETE FROM cadastro';
   db.query(query, (err, result) => {
