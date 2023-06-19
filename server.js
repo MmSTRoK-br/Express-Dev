@@ -64,6 +64,20 @@ app.post('/login', (req, res) => {
   });
 });
 
+axios.post('/api/authenticate', {username, password})
+  .then(response => {
+    // A resposta da API vai depender do seu back-end. 
+    // Normalmente, você terá um objeto de usuário como parte da resposta.
+    const user = response.data;
+
+    // Armazene a role no localStorage
+    localStorage.setItem('role', user.role);
+
+    // Continue com a lógica de autenticação...
+  })
+  .catch(error => {
+    // Handle error...
+  });
 
 app.delete('/deleteAll', (req, res) => {
   const query = 'DELETE FROM cadastro';
