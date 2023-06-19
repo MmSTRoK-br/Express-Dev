@@ -1,79 +1,65 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
 const mysql = require('mysql');
 const mercadopago = require('mercadopago');
 
 const app = express();
 
 const db = mysql.createPool({
-  host: '129.148.55.118',
-  user: 'QualityAdmin',
-  password: 'Suus0220##',
-  database: 'Quality_EAD',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   connectionLimit: 10,
 });
 
 db.getConnection((err, connection) => {
   if (err) throw err;
   console.log('Conectado ao banco de dados MySQL');
-
-  const createTableQuery = `
-    CREATE TABLE IF NOT EXISTS cadastro (
-      id INT PRIMARY KEY AUTO_INCREMENT,
-      email VARCHAR(255) NOT NULL,
-      senha VARCHAR(255) NOT NULL,
-      usuario VARCHAR(255) NOT NULL,
-      nome VARCHAR(255) NOT NULL,
-      unidade VARCHAR(255) NOT NULL,
-      setor VARCHAR(255) NOT NULL,
-      acesso VARCHAR(255) NOT NULL
-    );
-  `;
-  
-  connection.query(createTableQuery, (err, results) => {
-    if (err) {
-      console.error('Erro ao criar a tabela: ', err);
-    } else {
-      console.log('Tabela criada ou já existente.');
-    }
-  });
-
   connection.release();
 });
 
 app.use(cors());
 app.use(express.json());
 
+app.post('/register', (req, res) => {
+  const { usuario, nome, email, senha, unidade, setor, acesso } = req.body;
+  const hashedPassword = bcrypt.hashSync(senha, 10);
+
+  const query = 'INSERT INTO cadastro (usuario, nome, email, senha, unidade, setor, acesso) VALUES (?, ?, ?, ?, ?, ?, ?)';
+  db.query(query, [usuario, nome, email, hashedPassword, unidade, setor, acesso], (err, result) => {
+    if (err) {
+      console.log(err);
+      return res.send({ success: false, message: err.message });
+    }
+    res.send({ success: true });
+  });
+});
+
 app.post('/login', (req, res) => {
   const { usuario, senha } = req.body;
 
   const query = 'SELECT * FROM cadastro WHERE usuario = ?';
   db.query(query, [usuario], (err, results) => {
-    if (err) {
-        // handle error
-        console.error(err);
-        return;
-    }
-
-    if (results.length === 0) {
-        return res.send({ success: false, message: 'User not found' });
+    if (err || results.length === 0) {
+      return res.send({ success: false, message: 'User not found' });
     }
 
     const user = results[0];
 
-    if (senha !== user.senha) {
-        return res.send({ success: false, message: 'Wrong password' });
+    const isMatch = bcrypt.compareSync(senha, user.senha);
+    if (!isMatch) {
+      return res.send({ success: false, message: 'Wrong password' });
     }
 
-    const token = jwt.sign({ id: user.id, role: user.acesso }, 'suus02201998##', { expiresIn: '1h' });
+    const token = jwt.sign({ id: user.id, role: user.acesso }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.cookie('token', token, { httpOnly: true });
 
-    // inclua o nome do usuário na resposta
-    res.send({ success: true, username: user.usuario, role: user.acesso, token });
-
-});
-
+    res.send({ success: true, username: user.usuario, token });
+  });
 });
 
 
