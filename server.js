@@ -50,10 +50,20 @@ app.post('/login', (req, res) => {
 
   const query = 'SELECT * FROM cadastro WHERE usuario = ?';
   db.query(query, [usuario], (err, results) => {
-    // ...
+    if (err) {
+        // handle error
+        console.error(err);
+        return;
+    }
+
+    if (results.length === 0) {
+        return res.send({ success: false, message: 'User not found' });
+    }
+
+    const user = results[0];
 
     if (senha !== user.senha) {
-      return res.send({ success: false, message: 'Wrong password' });
+        return res.send({ success: false, message: 'Wrong password' });
     }
 
     const token = jwt.sign({ id: user.id, role: user.acesso }, 'suus02201998##', { expiresIn: '1h' });
@@ -61,8 +71,8 @@ app.post('/login', (req, res) => {
 
     // inclua o nome do usuário na resposta
     res.send({ success: true, username: user.usuario, token });
-    
-  });
+});
+
 });
 
 
