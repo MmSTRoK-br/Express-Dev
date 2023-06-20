@@ -62,25 +62,11 @@ app.post('/login', (req, res) => {
 
     const token = jwt.sign({ id: user.id, role: user.acesso }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.cookie('token', token, { httpOnly: true });
-
-    axios.post('/api/authenticate', { username: usuario, password: senha })
-    .then(response => {
-      // A resposta da API vai depender do seu back-end. 
-      // Normalmente, você terá um objeto de usuário como parte da resposta.
-      const authUser = response.data;
-
-      // Armazene a role no localStorage
-      // localStorage.setItem('role', authUser.role); // localStorage não funciona no lado do servidor.
-
-      // Continue com a lógica de autenticação...
-    })
-    .catch(error => {
-      // Handle error...
-    });
-
-    res.send({ success: true, username: user.usuario, token });
+    
+    res.send({ success: true, username: user.usuario, role: user.acesso, token });
   });
 });
+
 
 app.delete('/deleteAll', (req, res) => {
   const query = 'DELETE FROM cadastro';
