@@ -30,6 +30,67 @@ db.getConnection((err, connection) => {
 app.use(cors());
 app.use(express.json());
 
+// Buscar todos os usuários
+app.get('/users', (req, res) => {
+  const query = 'SELECT * FROM cadastro';
+  db.query(query, (err, results) => {
+    if (err) {
+      console.log(err);
+      return res.send({ success: false, message: err.message });
+    }
+    res.send({ success: true, users: results });
+  });
+});
+
+// Buscar um usuário específico pelo seu ID
+app.get('/users/:id', (req, res) => {
+  const { id } = req.params;
+  const query = 'SELECT * FROM cadastro WHERE id = ?';
+  db.query(query, [id], (err, results) => {
+    if (err) {
+      console.log(err);
+      return res.send({ success: false, message: err.message });
+    }
+    if (results.length === 0) {
+      return res.send({ success: false, message: 'User not found' });
+    }
+    res.send({ success: true, user: results[0] });
+  });
+});
+
+// Atualizar um usuário
+app.put('/users/:id', (req, res) => {
+  const { id } = req.params;
+  const { usuario, nome, email, senha, unidade, setor, acesso } = req.body;
+  const hashedPassword = bcrypt.hashSync(senha, 10);
+
+  const query = 'UPDATE cadastro SET usuario = ?, nome = ?, email = ?, senha = ?, unidade = ?, setor = ?, acesso = ? WHERE id = ?';
+  db.query(query, [usuario, nome, email, hashedPassword, unidade, setor, acesso, id], (err, result) => {
+    if (err) {
+      console.log(err);
+      return res.send({ success: false, message: err.message });
+    }
+    res.send({ success: true });
+  });
+});
+
+// Excluir um usuário
+app.delete('/users/:id', (req, res) => {
+  const { id } = req.params;
+  const query = 'DELETE FROM cadastro WHERE id = ?';
+  db.query(query, [id], (err, result) => {
+    if (err) {
+      console.log(err);
+      return res.send({ success: false, message: err.message });
+    }
+    if (result.affectedRows === 0) {
+      return res.send({ success: false, message: 'User not found' });
+    }
+    res.send({ success: true, message: `User with ID ${id} deleted` });
+  });
+});
+
+
 app.post('/register', (req, res) => {
   const { usuario, nome, email, senha, unidade, setor, acesso } = req.body;
   const hashedPassword = bcrypt.hashSync(senha, 10);
