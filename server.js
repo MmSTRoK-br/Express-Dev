@@ -10,7 +10,6 @@ const mercadopago = require('mercadopago');
 const axios = require('axios');
 const bodyParser = require('body-parser');
 
-
 const app = express();
 
 const db = mysql.createPool({
@@ -27,12 +26,94 @@ db.getConnection((err, connection) => {
   connection.release();
 });
 
+db.getConnection((err, connection) => {
+  if (err) throw err;
+  console.log('Conectado ao banco de dados MySQL');
+  connection.query(
+    "CREATE TABLE IF NOT EXISTS cadastro_clientes (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255), surname VARCHAR(255), email VARCHAR(255), birthDate DATE, gender VARCHAR(10), phone VARCHAR(20), phone2 VARCHAR(20), cpf VARCHAR(14), cnpj VARCHAR(18), registration VARCHAR(255), obs TEXT, address VARCHAR(255), number VARCHAR(10), complement VARCHAR(255), district VARCHAR(255), city VARCHAR(255), state VARCHAR(255), country VARCHAR(255), zipCode VARCHAR(10), unit VARCHAR(255), sector VARCHAR(255), role VARCHAR(255), institution VARCHAR(255), accessRecovery BOOLEAN, access VARCHAR(50))",
+    (err, result) => {
+      if (err) throw err;
+      console.log('Tabela "cadastro_clientes" verificada/criada');
+    }
+  );
+  connection.release();
+});
+
 app.use(cors());
 app.use(express.json());
 
+app.post('/register', (req, res) => {
+  const {
+    name,
+    surname,
+    email,
+    birthDate,
+    gender,
+    phone,
+    phone2,
+    cpf,
+    cnpj,
+    registration,
+    obs,
+    address,
+    number,
+    complement,
+    district,
+    city,
+    state,
+    country,
+    zipCode,
+    unit,
+    sector,
+    role,
+    institution,
+    accessRecovery,
+    access, 
+  } = req.body;
+
+  const query =
+    'INSERT INTO cadastro_clientes (name, surname, email, birthDate, gender, phone, phone2, cpf, cnpj, registration, obs, address, number, complement, district, city, state, country, zipCode, unit, sector, role, institution, accessRecovery) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+  const values = [
+    name,
+    surname,
+    email,
+    birthDate,
+    gender,
+    phone,
+    phone2,
+    cpf,
+    cnpj,
+    registration,
+    obs,
+    address,
+    number,
+    complement,
+    district,
+    city,
+    state,
+    country,
+    zipCode,
+    unit,
+    sector,
+    role,
+    institution,
+    accessRecovery,
+    access, 
+  ];
+
+  db.query(query, values, (err, result) => {
+    if (err) {
+      console.log(err);
+      return res.send({ success: false, message: err.message });
+    }
+    res.send({ success: true });
+  });         
+});
+
+
 // Buscar todos os usuários
 app.get('/users', (req, res) => {
-  const query = 'SELECT * FROM cadastro';
+  const query = 'SELECT * FROM cadastro_clientes';
   db.query(query, (err, results) => {
     if (err) {
       console.log(err);
@@ -45,7 +126,7 @@ app.get('/users', (req, res) => {
 // Buscar um usuário específico pelo seu ID
 app.get('/users/:id', (req, res) => {
   const { id } = req.params;
-  const query = 'SELECT * FROM cadastro WHERE id = ?';
+  const query = 'SELECT * FROM cadastro_clientes WHERE id = ?';
   db.query(query, [id], (err, results) => {
     if (err) {
       console.log(err);
@@ -59,13 +140,69 @@ app.get('/users/:id', (req, res) => {
 });
 
 // Atualizar um usuário
-app.put('/users/:id', (req, res) => {
+app.put('/cadastro_clientes/:id', (req, res) => {
   const { id } = req.params;
-  const { usuario, nome, email, senha, unidade, setor, acesso } = req.body;
-  const hashedPassword = bcrypt.hashSync(senha, 10);
+  const {
+    name,
+    surname,
+    email,
+    birthDate,
+    gender,
+    phone,
+    phone2,
+    cpf,
+    cnpj,
+    registration,
+    obs,
+    address,
+    number,
+    complement,
+    district,
+    city,
+    state,
+    country,
+    zipCode,
+    unit,
+    sector,
+    role,
+    institution,
+    accessRecovery,
+    access,  // Adicionado aqui
+  } = req.body;
 
-  const query = 'UPDATE cadastro SET usuario = ?, nome = ?, email = ?, senha = ?, unidade = ?, setor = ?, acesso = ? WHERE id = ?';
-  db.query(query, [usuario, nome, email, hashedPassword, unidade, setor, acesso, id], (err, result) => {
+  const query =
+    'UPDATE cadastro_clientes SET name = ?, surname = ?, email = ?, birthDate = ?, gender = ?, phone = ?, phone2 = ?, cpf = ?, cnpj = ?, registration = ?, obs = ?, address = ?, number = ?, complement = ?, district = ?, city = ?, state = ?, country = ?, zipCode = ?, unit = ?, sector = ?, role = ?, institution = ?, accessRecovery = ?, access = ? WHERE id = ?';  // Adicionado aqui
+
+  const values = [
+    name,
+    surname,
+    email,
+    birthDate,
+    gender,
+    phone,
+    phone2,
+    cpf,
+    cnpj,
+    registration,
+    obs,
+    address,
+    number,
+    complement,
+    district,
+    city,
+    state,
+    country,
+    zipCode,
+    unit,
+    sector,
+    role,
+    institution,
+    accessRecovery,
+    access,  // Adicionado aqui
+    id,
+  ];
+
+  db.query(query, values, (err, result) => {
     if (err) {
       console.log(err);
       return res.send({ success: false, message: err.message });
@@ -74,10 +211,11 @@ app.put('/users/:id', (req, res) => {
   });
 });
 
+
 // Excluir um usuário
 app.delete('/users/:id', (req, res) => {
   const { id } = req.params;
-  const query = 'DELETE FROM cadastro WHERE id = ?';
+  const query = 'DELETE FROM cadastro_clientes WHERE id = ?';
   db.query(query, [id], (err, result) => {
     if (err) {
       console.log(err);
@@ -87,21 +225,6 @@ app.delete('/users/:id', (req, res) => {
       return res.send({ success: false, message: 'User not found' });
     }
     res.send({ success: true, message: `User with ID ${id} deleted` });
-  });
-});
-
-
-app.post('/register', (req, res) => {
-  const { usuario, nome, email, senha, unidade, setor, acesso } = req.body;
-  const hashedPassword = bcrypt.hashSync(senha, 10);
-
-  const query = 'INSERT INTO cadastro (usuario, nome, email, senha, unidade, setor, acesso) VALUES (?, ?, ?, ?, ?, ?, ?)';
-  db.query(query, [usuario, nome, email, hashedPassword, unidade, setor, acesso], (err, result) => {
-    if (err) {
-      console.log(err);
-      return res.send({ success: false, message: err.message });
-    }
-    res.send({ success: true });
   });
 });
 
@@ -128,9 +251,8 @@ app.post('/login', (req, res) => {
   });
 });
 
-
 app.delete('/deleteAll', (req, res) => {
-  const query = 'DELETE FROM cadastro';
+  const query = 'DELETE FROM cadastro_clientes';
   db.query(query, (err, result) => {
     if (err) {
       console.log(err);
@@ -143,22 +265,6 @@ app.delete('/deleteAll', (req, res) => {
       res.send({ success: false, message: 'Não há registros para excluir.' });
     }
   });
-});
-
-app.post('/register', (req, res) => {
-  const { usuario, nome, email, senha, unidade, setor, acesso } = req.body;
-
-  const query = 'INSERT INTO cadastro (usuario, nome, email, senha, unidade, setor, acesso) VALUES (?, ?, ?, ?, ?, ?, ?)';
-  db.query(query, [usuario, nome, email, senha, unidade, setor, acesso], (err, result) => {
-    
-    if (err) {
-      console.log(err);
-      return res.send({ success: false, message: err.message });
-    }
-
-    res.send({ success: true });
-  });
-
 });
 
 app.use((req, res, next) => {
@@ -195,96 +301,6 @@ app.use((req, res, next) => {
 
   next();
 });
-
-
-
-app.post('/payment_notification', (req, res) => {
-  // Extraia os detalhes do pagamento do corpo da requisição
-  const { id, email, cursos, valor } = req.body;
-
-  // Query para inserir os detalhes do pagamento no banco de dados
-  const query = 'INSERT INTO pagamentos (id, email, cursos, valor) VALUES (?, ?, ?, ?)';
-  
-  // Execute a query
-  db.query(query, [id, email, cursos, valor], (err, result) => {
-    if (err) {
-      console.log(err);
-      return res.status(500).send({ success: false, message: err.message });
-    }
-    res.send({ success: true });
-  });
-});
-
-
-mercadopago.configure({
-  access_token: 'TEST-2684905602430236-052513-51d07b1caa42a7938ab7e2a9f13a7f98-135153905',
-});
-
-app.post('/create_preference', async (req, res) => {
-  const { title, price, quantity } = req.body;
-
-  const preference = {
-    items: [
-      {
-        title,
-        unit_price: Number(price),
-        quantity: Number(quantity),
-      },
-    ],
-  };
-
-  try {
-    const response = await mercadopago.preferences.create(preference); // Correção aqui
-    res.json({ id: response.body.id });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-app.post('/webhook', async (req, res) => {
-  console.log("Received a webhook event", req.body);  
-
-  const event = req.body;
-
-  if (event.action === "payment.created") {
-    try {
-      // Fetch payment details from Mercado Pago API
-      const payment = await mercadopago.payment.findById(event.data.id);
-
-      // Check if payment and payer exist and the payment is approved
-      if (payment.body && payment.body.payer && payment.body.status === 'approved') {
-        const email = payment.body.payer.email;
-        const sessionId = payment.body.id;
-        const courses = payment.body.additional_info.items;
-        const amount = payment.body.transaction_amount;
-
-        console.log("Saving checkout data", {sessionId, email, courses, amount});  
-
-        const query = 'INSERT INTO checkout (session_id, email, cursos, valor) VALUES (?, ?, ?, ?)';
-        db.query(query, [sessionId, email, JSON.stringify(courses), amount], (err, result) => {
-          if (err) {
-              console.error('Error inserting checkout data into the database: ', err);
-              return res.status(500).send({ success: false, message: err.message });
-          }
-          console.log("Query result: ", result);
-          console.log("Successfully saved checkout data");
-          res.send({ success: true });
-        });
-      } else {
-        console.log("Payment not approved, ignoring");
-      }
-    } catch (error) {
-      console.error('Error fetching payment details from Mercado Pago API: ', error);
-    }
-  } else {
-    console.log("Webhook event not relevant, ignoring");
-  }
-
-  res.status(200).end();
-});
-
-
-
 
 const port = process.env.PORT || 5000;
 
